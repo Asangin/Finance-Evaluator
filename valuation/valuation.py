@@ -29,6 +29,15 @@ def calculate_pegy(info: Dict) -> Optional[Dict[str, float]]:
         return {"type": "PEG", "value": pe / growth_pct}
 
 
+def interpret_pegy_ratio(pegy: float) -> str:
+    if pegy < 1:
+        return f"✅ PEGY/PEG Ratio {pegy:.2f} suggests the stock may be undervalued."
+    elif pegy < 2:
+        return f"⚖️ PEGY/PEG Ratio {pegy:.2f} suggests fair valuation."
+    else:
+        return f"⚠️ PEGY/PEG Ratio {pegy:.2f} suggests the stock may be overvalued."
+
+
 # ------------------------------- DCF --------------------------------------------
 
 def calculate_dcf(info: Dict,

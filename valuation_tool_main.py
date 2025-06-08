@@ -34,7 +34,7 @@ import yfinance as yf
 from valuation.reporting import export_report
 from valuation.utility_helpers import safe_get, fmt_price
 from valuation.valuation import ticket_info, calculate_pegy, calculate_dcf, suggest_peers, collect_peer_multiples, \
-    apply_comps, rule_of_40, suggest_multiple_peers
+    apply_comps, rule_of_40, suggest_multiple_peers, interpret_pegy_ratio, calculate_dcf_v2
 
 
 # --------------------------- Main interactive flow ------------------------------
@@ -74,6 +74,9 @@ def main():
                 print("(Dividend yield not available – showing PEG instead of PEGY)")
         else:
             print("PEGY/PEG ratio not available (missing data).")
+
+        ratio_msg = interpret_pegy_ratio(pegy_val['value'])
+        print(ratio_msg)
 
         # ---------------- DCF -----------------
         print("\nEnter DCF assumptions (press ↵ to accept default):")
