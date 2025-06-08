@@ -1,0 +1,5 @@
+
+yfinance
+pytickersymbols
+PyYAML
+pytest
