@@ -81,7 +81,7 @@ def suggest_peers(
     for stock in stocks:
         symbol = stock.get("symbol")
         industries = stock.get("industries")
-        print(f"symbol: ${symbol}, industries: ${industries}")
+        # print(f"symbol: ${symbol}, industries: ${industries}")
         for item in industries:
             if (target_industry.lower() == str(item).lower()):
                 peers.append(symbol)
@@ -106,7 +106,7 @@ def suggest_multiple_peers(
     for stock in stocks:
         symbol = stock.get("symbol")
         industries = stock.get("industries")
-        print(f"symbol: ${symbol}, industries: ${industries}")
+        # print(f"symbol: ${symbol}, industries: ${industries}")
         for item in industries:
             if (is_partial_match(target_industry, item)):
                 peers.append(symbol)
