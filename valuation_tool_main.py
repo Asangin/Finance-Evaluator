@@ -71,11 +71,10 @@ def main():
             print(f"📊 {pegy_val['type']} ratio: {pegy_val['value']:.2f}")
             if pegy_val['type'] == "PEG":
                 print("(Dividend yield not available – showing PEG instead of PEGY)")
+            ratio_msg = interpret_pegy_ratio(pegy_val['value'])
+            print(ratio_msg)
         else:
             print("PEGY/PEG ratio not available (missing data).")
-
-        ratio_msg = interpret_pegy_ratio(pegy_val['value'])
-        print(ratio_msg)
 
         # ---------------- DCF -----------------
         print("\nEnter DCF assumptions (press ↵ to accept default):")
@@ -134,13 +133,18 @@ def main():
                             print(f"{m}: {fmt_price(p)} (avg multiple {avg_mults[m]:.2f})")
                     else:
                         print("Comparable valuation could not be calculated (missing target data).")
+        print("")
 
         # -------------- Rule of 40 ---------------
 
+        print("")
         revenue_growth = info.get("revenueGrowth", 0) * 100
+        print(f"Revenue growth: {revenue_growth}%")
         profitability = info.get("operatingMargins", 0) * 100
+        print(f"Operating margins: {profitability}%")
         rule40 = rule_of_40(revenue_growth, profitability)
         print("📐 Rule of 40:", rule40["message"])
+        print("ℹ️", rule40["explanation"])
 
         # -------------- Export report ---------------
         report_name = f"{symbol.upper()}_valuation_report.txt"

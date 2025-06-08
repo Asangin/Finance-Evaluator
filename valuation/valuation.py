@@ -14,6 +14,7 @@ def calculate_pegy(info: Dict) -> Optional[Dict[str, float]]:
     dividend_yield = safe_get(info, "dividendYield")
 
     if pe is None or growth is None:
+        print("⚠️ trailingPE is missing")
         return None
 
     growth_pct = growth * 100
@@ -204,8 +205,14 @@ def rule_of_40(revenue_growth_rate: float, profitability_margin: float) -> dict:
         if meets else
         f"❌ Does NOT meet Rule of 40 (Score = {score:.2f}%)"
     )
+    explanation = (
+        "The Rule of 40 is a benchmark used to evaluate growth companies, especially in tech. "
+        "It adds Revenue Growth Rate (%) and Profitability Margin (%). If the sum is ≥ 40%, "
+        "the company is considered to have a healthy balance between growth and profitability."
+    )
     return {
         "score": score,
         "meets_rule": meets,
-        "message": message
+        "message": message,
+        "explanation": explanation
     }
