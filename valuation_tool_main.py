@@ -34,7 +34,7 @@ import yfinance as yf
 from valuation.reporting import export_report
 from valuation.utility_helpers import safe_get, fmt_price
 from valuation.valuation import ticket_info, calculate_pegy, calculate_dcf, suggest_peers, collect_peer_multiples, \
-    apply_comps, rule_of_40
+    apply_comps, rule_of_40, suggest_multiple_peers
 
 
 # --------------------------- Main interactive flow ------------------------------
@@ -93,7 +93,7 @@ def main():
         print(f"\nIndustry: {industry if industry else 'N/A'}")
         suggested = []
         if industry:
-            suggested = suggest_peers(industry, symbol)
+            suggested = suggest_multiple_peers(industry)
             if suggested:
                 print(f"\nSuggested peers in same industry ({industry}): {', '.join(suggested)}")
         manual_peers = input("Enter additional/comma‑separated peer tickers (or press ↵ to use suggested only): ")

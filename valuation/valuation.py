@@ -69,23 +69,56 @@ def calculate_dcf(info: Dict,
 
 # --------------------------- Peer suggestion ------------------------------------
 
-def suggest_peers(target_industry: str, exclude: str, index: str = 'S&P 500', max_peers: int = 10) -> List[str]:
+def suggest_peers(
+        target_industry: str,
+        exclude: str = '',
+        index: str = 'S&P 500', # 'S&P 500', 'DAX', 'FTSE 100'
+        max_peers: int = 10) -> List[str]:
     """Return up to `max_peers` peer tickers in the same industry."""
     stock_data = PyTickerSymbols()
     stocks = stock_data.get_stocks_by_index(index)
-
     peers = []
     for stock in stocks:
         symbol = stock.get("symbol")
         industries = stock.get("industries")
-        # print(f"symbol: ${symbol}, industries: ${industries}")
+        print(f"symbol: ${symbol}, industries: ${industries}")
         for item in industries:
             if (target_industry.lower() == str(item).lower()):
                 peers.append(symbol)
         if len(peers) >= max_peers:
             break
-
     return peers
+
+def suggest_multiple_peers(
+        target_industry: str,
+        exclude: str = '',
+        indexes: list[str] = ('S&P 500', 'DAX', 'FTSE 100'),
+        max_peers: int = 10) -> List[str]:
+    """Return up to `max_peers` peer tickers in the same industry."""
+    stock_data = PyTickerSymbols()
+    stocks = []
+    for index in indexes:
+        index_stock = stock_data.get_stocks_by_index(index)
+        for s in index_stock:
+            stocks.append(s)
+
+    peers = []
+    for stock in stocks:
+        symbol = stock.get("symbol")
+        industries = stock.get("industries")
+        print(f"symbol: ${symbol}, industries: ${industries}")
+        for item in industries:
+            if (is_partial_match(target_industry, item)):
+                peers.append(symbol)
+        if len(peers) >= max_peers:
+            break
+    return peers
+
+
+def is_partial_match(source: str, target: str) -> bool:
+    source_words = set(source.lower().split())
+    target_words = set(target.lower().split())
+    return target_words.issubset(source_words)
 
 
 # --------------------------- Comparable valuation -------------------------------
@@ -154,7 +187,7 @@ def rule_of_40(revenue_growth_rate: float, profitability_margin: float) -> dict:
     (Profitability is usually measured using EBITDA margin, operating margin, or free cash flow margin.)
     """
     score = revenue_growth_rate + profitability_margin
-    meets = score >= 40 # TODO for tech only, need to understand this value for other companies
+    meets = score >= 40  # TODO for tech only, need to understand this value for other companies
     message = (
         f"✅ Meets Rule of 40 (Score = {score:.2f}%)"
         if meets else
