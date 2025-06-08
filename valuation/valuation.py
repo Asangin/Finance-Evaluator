@@ -41,13 +41,15 @@ def interpret_pegy_ratio(pegy: float) -> str:
 # ------------------------------- DCF --------------------------------------------
 
 def calculate_dcf(info: Dict,
+                  growth_rate: float,
                   years: int = 5,
-                  growth_rate: float = 0.08,
                   discount_rate: float = 0.10,
                   terminal_growth: float = 0.03) -> Optional[Dict]:
     """Return a dict with intrinsic value components or None if data missing."""
     fcf = safe_get(info, "freeCashflow")  # trailing twelve months
     shares_out = safe_get(info, "sharesOutstanding")
+    if growth_rate == 0.0:
+        growth_rate = info.get("earningsGrowth", 0.05)
     if None in (fcf, shares_out):
         return None
 

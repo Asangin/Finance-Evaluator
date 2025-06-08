@@ -29,12 +29,11 @@ The script will interactively ask for:
 """
 
 import numpy as np
-import yfinance as yf
 
 from valuation.reporting import export_report
 from valuation.utility_helpers import safe_get, fmt_price
 from valuation.valuation import ticket_info, calculate_pegy, calculate_dcf, suggest_peers, collect_peer_multiples, \
-    apply_comps, rule_of_40, suggest_multiple_peers, interpret_pegy_ratio, calculate_dcf_v2
+    apply_comps, rule_of_40, suggest_multiple_peers, interpret_pegy_ratio
 
 
 # --------------------------- Main interactive flow ------------------------------
@@ -69,7 +68,7 @@ def main():
         # ---------------- PEGY ----------------
         pegy_val = calculate_pegy(info)
         if pegy_val:
-            print(f"{pegy_val['type']} ratio: {pegy_val['value']:.2f}")
+            print(f"📊 {pegy_val['type']} ratio: {pegy_val['value']:.2f}")
             if pegy_val['type'] == "PEG":
                 print("(Dividend yield not available – showing PEG instead of PEGY)")
         else:
@@ -80,16 +79,20 @@ def main():
 
         # ---------------- DCF -----------------
         print("\nEnter DCF assumptions (press ↵ to accept default):")
-        g_rate = prompt_float("FCF growth rate (as decimal)", 0.08)
+        g_rate = prompt_float("FCF growth rate (will be fetch from company info, if not specified)", 0.0)
         d_rate = prompt_float("Discount rate (as decimal)", 0.10)
         t_growth = prompt_float("Terminal growth rate (as decimal)", 0.03)
         years = int(prompt_float("Projection years", 5))
 
-        dcf_res = calculate_dcf(info, years, g_rate, d_rate, t_growth)
+        dcf_res = calculate_dcf(info, g_rate, years, d_rate, t_growth)
         if dcf_res:
-            print(f"Intrinsic value per share (DCF): {fmt_price(dcf_res['intrinsic_per_share'])}")
+            print("Result: ")
+            print(f"💰 Discounted Cash Flow (5y): {fmt_price(dcf_res['pv_fcfs'])}")
+            print(f"💰 Terminal value (Gordon growth model): {fmt_price(dcf_res['pv_terminal'])}")
+            print(f"💰 Total equity: {fmt_price(dcf_res['total_equity'])}")
+            print(f"📌 Intrinsic value per share (DCF): {fmt_price(dcf_res['intrinsic_per_share'])}")
         else:
-            print("DCF valuation unavailable (missing data).")
+            print("⚠️ DCF valuation unavailable (missing data).")
 
         # -------------- Peer suggestion ---------------
         industry = safe_get(info, "industry")
@@ -98,12 +101,12 @@ def main():
         if industry:
             suggested = suggest_multiple_peers(industry)
             if suggested:
-                print(f"\nSuggested peers in same industry ({industry}): {', '.join(suggested)}")
+                print(f"\n🤝 Suggested peers in same industry ({industry}): {', '.join(suggested)}")
         manual_peers = input("Enter additional/comma‑separated peer tickers (or press ↵ to use suggested only): ")
         extra = [p.strip().upper() for p in manual_peers.split(',') if p.strip()]
         peer_list = list({*suggested, *extra})  # unique set
         if not peer_list:
-            print("No peers specified – skipping Comparable valuation.")
+            print("⚠️ No peers specified – skipping Comparable valuation.")
             comps_prices = {}
             avg_mults = {}
         else:
