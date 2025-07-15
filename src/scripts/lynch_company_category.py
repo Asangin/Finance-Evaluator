@@ -1,4 +1,4 @@
-from valuation.valuation import ticket_info
+from src.valuation.yfinance_api import ticket_info
 
 
 def classify_fast_grower(growth, peg_ratio, free_cash_flow, debt_to_equity):
@@ -40,7 +40,7 @@ def classify_stalwart(market_cap, growth, earnings_growth, pe_ratio, beta):
 
 def classify_company(ticker_symbol):
     try:
-        info = ticket_info(symbol)
+        info = ticket_info(ticker_symbol)
 
         growth = info.get("revenueGrowth", 0)
         print(f"revenueGrowth={growth}")
@@ -78,8 +78,3 @@ def classify_company(ticker_symbol):
 
     except Exception as e:
         return f"Error processing {ticker_symbol}: {str(e)}"
-
-if __name__ == "__main__":
-    symbol = input("Enter stock symbol (e.g., AAPL): ").upper()
-    classification = classify_company(symbol)
-    print(f"\n Company classified as {classification}")

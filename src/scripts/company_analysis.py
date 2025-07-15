@@ -1,6 +1,4 @@
-import yfinance as yf
-
-from valuation.valuation import ticket_info
+from src.valuation.yfinance_api import ticket_info
 
 
 def pe_score(pe_ratio):
@@ -214,7 +212,7 @@ def dividend_yield_score(yield_percent):
 
 def analyze_company(ticker_symbol):
     # Fetch data
-    info = ticket_info(symbol)
+    info = ticket_info(ticker_symbol)
 
     try:
         print(f"\n--- Analysis for {info.get('shortName', ticker_symbol)} ({ticker_symbol}) ---")
@@ -318,9 +316,3 @@ def analyze_company(ticker_symbol):
 
     except Exception as e:
         print(f"Error fetching or analyzing data for {ticker_symbol}: {e}")
-
-
-if __name__ == "__main__":
-    # Example: Apple
-    symbol = input("Enter stock symbol (e.g., AAPL): ").upper()
-    analyze_company(symbol)

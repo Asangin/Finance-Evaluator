@@ -30,9 +30,9 @@ The script will interactively ask for:
 
 import numpy as np
 
-from valuation.reporting import export_report
-from valuation.utility_helpers import safe_get, fmt_price
-from valuation.valuation import ticket_info, calculate_pegy, calculate_dcf, suggest_peers, collect_peer_multiples, \
+from src.valuation.reporting import export_report
+from src.valuation.utility_helpers import safe_get, fmt_price
+from src.valuation.yfinance_api import ticket_info, calculate_pegy, calculate_dcf_v2, collect_peer_multiples, \
     apply_comps, rule_of_40, suggest_multiple_peers, interpret_pegy_ratio
 
 
@@ -47,7 +47,7 @@ def prompt_float(prompt: str, default: float) -> float:
         return default
 
 
-def main():
+def run_valuation():
     print("\n📈 Comprehensive Valuation Tool (PEGY • DCF • Comps)\n")
 
     while True:
@@ -66,7 +66,7 @@ def main():
             print("\n⚠️ Current price unavailable.")
 
         # ---------------- PEGY ----------------
-        pegy_val = calculate_pegy(info)
+        pegy_val = calculate_pegy(symbol, info)
         if pegy_val:
             print(f"📊 {pegy_val['type']} ratio: {pegy_val['value']:.2f}")
             if pegy_val['type'] == "PEG":
@@ -83,7 +83,7 @@ def main():
         t_growth = prompt_float("Terminal growth rate (as decimal)", 0.03)
         years = int(prompt_float("Projection years", 5))
 
-        dcf_res = calculate_dcf(info, g_rate, years, d_rate, t_growth)
+        dcf_res = calculate_dcf_v2(info, g_rate, years, d_rate, t_growth)
         if dcf_res:
             print("Result: ")
             print(f"💰 Discounted Cash Flow (5y): {fmt_price(dcf_res['pv_fcfs'])}")
@@ -150,7 +150,3 @@ def main():
         report_name = f"{symbol.upper()}_valuation_report.txt"
         export_report(report_name, symbol, price, pegy_val, dcf_res, comps_prices, avg_mults, rule40)
         print(f"\n📄 Report saved to {report_name}\n")
-
-
-if __name__ == "__main__":
-    main()
