@@ -21,3 +21,10 @@ Most of the script was built on top of the Yahoo API.
 
 There is also open AI model available to recreate scrip in any language by uploading [spec](open_ai_spec) and send a
 promt: `Please regenerate the Python script based on this spec.` to AI chat.
+
+## Run test
+
+```bash
+pytest test/test_yahoo.py::test_yahoo
+pytest test/test_yahoo.py::test_fcf_info
+```

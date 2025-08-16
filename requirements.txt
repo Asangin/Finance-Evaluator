@@ -2,3 +2,7 @@ yfinance
 pytickersymbols
 PyYAML
 pytest
+scikit-learn
+pandas
+tabulate
+pytest
