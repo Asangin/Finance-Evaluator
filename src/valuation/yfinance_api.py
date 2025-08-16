@@ -344,6 +344,62 @@ def calculate_comparables(target_symbol, target_info):
         print(f"  💰 Implied Price by P/S: ${implied_price_ps:.2f}")
 
 
+import yfinance as yf
+
+
+def dcf_intrinsic_value(ticker: str,
+                        discount_rate=0.08,
+                        terminal_growth_rate=0.03,
+                        fcf_growth_rate=0.10,
+                        forecast_years=5):
+    """
+    Calculates intrinsic value per share using a traditional DCF model.
+
+    :param ticker: Stock ticker symbol (e.g., "AAPL")
+    :param discount_rate: Discount rate (WACC) in decimal form
+    :param terminal_growth_rate: Long-term growth rate in decimal form
+    :param fcf_growth_rate: Growth rate of FCF during forecast period
+    :param forecast_years: Number of years to forecast
+    :return: Intrinsic value per share
+    """
+
+    # Download financial data
+    stock = yf.Ticker(ticker)
+    shares_outstanding = stock.info.get("sharesOutstanding", None)
+    cash = stock.info.get("totalCash", 0)
+    debt = stock.info.get("totalDebt", 0)
+
+    # Get historical cash flow data
+    cashflow = stock.cashflow
+    if "Free Cash Flow" not in cashflow.index or "Capital Expenditure" not in cashflow.index:
+        raise ValueError("Cash flow data not available for this ticker.")
+
+    ocf = cashflow.loc["Free Cash Flow"].iloc[0]
+    capex = cashflow.loc["Capital Expenditure"].iloc[0]
+    fcf = ocf + capex  # CapEx is usually negative
+
+    # Forecast future FCFs
+    fcfs = [fcf * (1 + fcf_growth_rate) ** i for i in range(1, forecast_years + 1)]
+
+    # Discount FCFs
+    pv_fcfs = [fcf / ((1 + discount_rate) ** n) for n, fcf in enumerate(fcfs, start=1)]
+
+    # Terminal Value
+    terminal_value = fcfs[-1] * (1 + terminal_growth_rate) / (discount_rate - terminal_growth_rate)
+    pv_terminal_value = terminal_value / ((1 + discount_rate) ** forecast_years)
+
+    # Enterprise Value
+    enterprise_value = sum(pv_fcfs) + pv_terminal_value
+
+    # Equity Value
+    equity_value = enterprise_value - debt + cash
+
+    # Per Share Value
+    intrinsic_value = equity_value / shares_outstanding
+
+    return intrinsic_value, equity_value, enterprise_value
+
+
 def print_ticker_current_value(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
