@@ -1,5 +1,7 @@
 # Comapanies analyses tool
 
+> This repository was created only for educational purposes. Use it at your own risk.
+
 ## API
 
 > [finviz api](https://stock-analysis-engine.readthedocs.io/en/latest/finviz_api.html)
