@@ -400,6 +400,99 @@ def dcf_intrinsic_value(ticker: str,
     return intrinsic_value, equity_value, enterprise_value
 
 
+def check_dividends_and_ddm(ticker, discount_rate=0.10, growth_rate=None):
+    """
+    Checks if a company pays dividends and calculates the Dividend Discount Model (DDM) value using the Gordon Growth Model.
+
+    Parameters:
+    - ticker: str, the stock ticker symbol (e.g., 'AAPL')
+    - discount_rate: float, the required rate of return (default: 10% or 0.10)
+    - growth_rate: float or None, the expected dividend growth rate. If None, it will be calculated from historical data.
+
+    Returns:
+    - A string with the result: whether it pays dividends and the estimated stock price if applicable.
+    """
+    # Fetch stock data
+    stock = yf.Ticker(ticker)
+
+    # Get dividend history
+    dividends = stock.dividends
+
+    if dividends.empty:
+        return f"The company {ticker} does not pay dividends based on available data."
+
+    print(f"The company {ticker} pays dividends.")
+
+    # Resample to annual dividends (sum quarterly/semi-annual dividends per year)
+    annual_dividends = dividends.resample('Y').sum()
+
+    if len(annual_dividends) < 2:
+        return "Not enough historical dividend data to perform DDM analysis."
+
+    # Calculate historical growth rate if not provided
+    if growth_rate is None:
+        growth_rates = annual_dividends.pct_change().dropna()
+        if growth_rates.empty:
+            return "Unable to calculate growth rate from historical data."
+        growth_rate = growth_rates.mean()
+        print(f"Calculated average dividend growth rate: {growth_rate:.4f} ({growth_rate * 100:.2f}%)")
+
+    # Last annual dividend
+    last_annual_div = annual_dividends[-1]
+
+    # Next year's expected dividend
+    d1 = last_annual_div * (1 + growth_rate)
+
+    # Check if discount rate > growth rate
+    if discount_rate <= growth_rate:
+        return "Discount rate must be greater than the growth rate for the model to converge."
+
+    # Calculate intrinsic value using Gordon Growth Model
+    intrinsic_value = d1 / (discount_rate - growth_rate)
+
+    return f"Estimated intrinsic stock price using DDM: ${intrinsic_value:.2f}"
+
+def dcf_valuation(
+    fcf: float,                 # Current Free Cash Flow
+    growth_rate: float,         # Expected annual FCF growth (e.g., 0.08 = 8%)
+    discount_rate: float,       # Discount rate / WACC (e.g., 0.10 = 10%)
+    terminal_growth: float,     # Terminal growth rate after forecast (e.g., 0.03 = 3%)
+    years: int,                 # Projection period (5–10 years typical)
+    debt: float,                # Total company debt
+    cash: float,                # Total cash
+    shares_outstanding: float   # Number of shares
+) -> float:
+    """
+    Returns the intrinsic (fair) value per share using DCF.
+    """
+    fcf_projections = []
+    pv_fcf = 0
+
+    # Step 1: Project and discount FCFs
+    for t in range(1, years + 1):
+        fcf = fcf * (1 + growth_rate)   # project next year's FCF
+        pv = fcf / ((1 + discount_rate) ** t)
+        fcf_projections.append((t, fcf, pv))
+        pv_fcf += pv
+
+    # Step 2: Terminal Value
+    terminal_fcf = fcf * (1 + terminal_growth)
+    terminal_value = terminal_fcf / (discount_rate - terminal_growth)
+    pv_terminal_value = terminal_value / ((1 + discount_rate) ** years)
+
+    # Step 3: Enterprise Value
+    enterprise_value = pv_fcf + pv_terminal_value
+
+    # Step 4: Equity Value
+    equity_value = enterprise_value - debt + cash
+
+    # Step 5: Per-share value
+    fair_value_per_share = equity_value / shares_outstanding
+
+    return fair_value_per_share
+
+
+
 def print_ticker_current_value(symbol):
     ticker = yf.Ticker(symbol)
     info = ticker.info
